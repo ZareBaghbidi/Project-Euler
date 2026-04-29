@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="icon" type="image/png" href="project/logo.png">
+    <title>Project Euler · Simulator · Persian Translation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        /* ========== LIGHT MODE (default) ========== */
+        body {
+            background: #eef2f5;
+            font-family: 'Segoe UI', 'Tahoma', 'Geneva', 'Verdana', sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+            background: #1a3e60;
+            color: white;
+            padding: 20px 30px;
+            border-bottom: 4px solid #f5b042;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
+            font-weight: 500;
+        }
+
+        .header p {
+            opacity: 0.85;
+            margin-top: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .header-img {
+            height: 55px;
+            width: auto;
+            border-radius: 12px;
+        }
+
+        /* ========== ANIMATED MOON/SUN TOGGLE BUTTON (SVG, no emoji) ========== */
+        .theme-toggle {
+            background: rgba(255,255,240,0.2);
+            border: none;
+            width: 56px;
+            height: 56px;
+            border-radius: 60px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .theme-toggle:hover {
+            transform: scale(1.05);
+            background: rgba(255,255,210,0.45);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+        }
+        .theme-toggle:active {
+            transform: scale(0.96);
+        }
+        /* icon wrapper for two SVGs (moon & sun) */
+        .icon-switch-wrapper {
+            position: relative;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .theme-svg {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+            backface-visibility: hidden;
+        }
+        .moon-svg {
+            opacity: 1;
+            transform: rotate(0deg) scale(1);
+        }
+        .sun-svg {
+            opacity: 0;
+            transform: rotate(-60deg) scale(0.6);
+        }
+        /* dark mode active state: show sun, hide moon */
+        body.dark .moon-svg {
+            opacity: 0;
+            transform: rotate(90deg) scale(0.5);
+        }
+        body.dark .sun-svg {
+            opacity: 1;
+            transform: rotate(0deg) scale(1);
+        }
+        /* animation for click (morphing spin) */
+        .icon-animate {
+            animation: iconSpinMorph 0.45s cubic-bezier(0.2, 0.9, 0.6, 1.2) forwards;
+        }
+        @keyframes iconSpinMorph {
+            0% { transform: rotate(0deg) scale(1); opacity: 1; }
+            50% { transform: rotate(180deg) scale(0.8); opacity: 0.7; }
+            100% { transform: rotate(360deg) scale(1); opacity: 1; }
+        }
+        /* small glow for icons */
+        .theme-svg path, .theme-svg circle {
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+            transition: fill 0.2s;
+        }
+        body.dark .theme-svg path,
+        body.dark .theme-svg circle {
+            filter: drop-shadow(0 2px 6px rgba(255,215,0,0.5));
+        }
+
+        /* mobile menu row */
+        .mobile-menu-row {
+            display: none;
+            background: #f8fafc;
+            padding: 12px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .mobile-menu-btn {
+            background: #1a3e60;
+            border: none;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 10px 18px;
+            border-radius: 40px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            transition: 0.2s;
+            width: fit-content;
+        }
+
+        .mobile-menu-btn:hover {
+            background: #0f2f4a;
+            transform: scale(0.97);
+        }
+
+        .main-grid {
+            display: flex;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        /* SIDEBAR */
+        .problems-sidebar {
+            width: 280px;
+            background: #f8fafc;
+            border-right: 1px solid #dce4ec;
+            padding: 0 0 20px 0;
+            height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        .problems-sidebar h3 {
+            padding: 20px 20px 15px 20px;
+            font-size: 1.3rem;
+            color: #1a3e60;
+            border-bottom: 1px solid #dce4ec;
+        }
+
+        .goto-panel {
+            position: sticky;
+            top: 0;
+            background: #f8fafc;
+            padding: 12px 20px 16px 20px;
+            border-bottom: 1px solid #e0e7ed;
+            z-index: 10;
+        }
+
+        .goto-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #2c5a7a;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .goto-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .goto-input {
+            width: 85px;
+            padding: 6px 8px;
+            font-size: 0.9rem;
+            font-family: monospace;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            text-align: center;
+            background: white;
+        }
+
+        .goto-btn {
+            background: #2c5a7a;
+            color: white;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .problem-list {
+            list-style: none;
+            margin-top: 4px;
+        }
+
+        .problem-link {
+            display: block;
+            padding: 8px 20px;
+            color: #2c3e50;
+            text-decoration: none;
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+
+        .problem-link:hover {
+            background: #e9edf2;
+            border-left-color: #f5b042;
+        }
+
+        .problem-link.active {
+            background: #e2e8f0;
+            border-left-color: #1a3e60;
+            font-weight: bold;
+            color: #0f2b3b;
+        }
+
+        .problem-content {
+            flex: 1;
+            padding: 30px 35px;
+            background: white;
+            min-height: 70vh;
+        }
+
+        .problem-title {
+            font-size: 1.9rem;
+            color: #1a3e60;
+            border-bottom: 2px solid #f0c674;
+            display: inline-block;
+            padding-bottom: 5px;
+            margin-bottom: 25px;
+        }
+
+        .problem-description {
+            background: #fef9e6;
+            padding: 20px 25px;
+            border-radius: 12px;
+            border-left: 5px solid #f5b042;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .translation-widget {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .translate-btn {
+            background: #2c5a7a;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .translate-btn:hover {
+            background: #1a3e60;
+            transform: scale(0.97);
+        }
+
+        .translation-collapsible {
+            display: block;
+            background: #f0f7ff;
+            border-radius: 14px;
+            border: 1px solid #cbdde9;
+            margin-bottom: 25px;
+            overflow: hidden;
+            transition: max-height 0.45s cubic-bezier(0.33, 1, 0.68, 1), opacity 0.3s ease, margin 0.2s ease;
+            max-height: 0;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .translation-collapsible.open {
+            max-height: 1200px;
+            opacity: 1;
+            visibility: visible;
+            margin-bottom: 25px;
+        }
+
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 18px;
+            background: #e6f0fa;
+            cursor: pointer;
+            font-weight: 600;
+            color: #1a3e60;
+            border-bottom: 1px solid #cbdde9;
+        }
+
+        .toggle-translate-btn {
+            background: none;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #2c5a7a;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .collapsible-content {
+            padding: 18px 22px;
+            background: white;
+            font-size: 0.95rem;
+            line-height: 1.75;
+            color: #2c3e50;
+            border-top: 1px solid #e2edf7;
+            direction: rtl;
+            text-align: justify;
+            font-family: 'Segoe UI', 'Tahoma', sans-serif;
+            transition: max-height 0.35s ease-out, padding 0.25s ease, opacity 0.25s;
+            max-height: 1000px;
+            opacity: 1;
+            overflow: hidden;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
+            visibility: hidden;
+            border-top: none;
+        }
+
+        .answer-section {
+            background: #f1f5f9;
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+
+        .answer-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px 15px;
+            font-size: 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: monospace;
+            background: white;
+        }
+
+        .check-btn {
+            margin-top: 12px;
+            background: #2c5a7a;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        footer {
+            background: #eef2f5;
+            text-align: center;
+            padding: 15px;
+            font-size: 0.8rem;
+            color: #5a6e7c;
+            border-top: 1px solid #dce4ec;
+        }
+
+        /* ========== DARK MODE STYLES ========== */
+        body.dark {
+            background: #121826;
+            color: #e2e8f0;
+        }
+        body.dark .container {
+            background: #0f172a;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+        body.dark .header {
+            background: #0b2b3f;
+            border-bottom-color: #f5b042;
+        }
+        body.dark .problems-sidebar {
+            background: #111827;
+            border-right-color: #1f2a3e;
+        }
+        body.dark .problems-sidebar h3 {
+            color: #f5cd94;
+            border-bottom-color: #2d3a4e;
+        }
+        body.dark .goto-panel {
+            background: #111827;
+            border-bottom-color: #1f2a3e;
+        }
+        body.dark .goto-label {
+            color: #bdd3f0;
+        }
+        body.dark .goto-input {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+        body.dark .goto-btn {
+            background: #3b6e8f;
+        }
+        body.dark .problem-link {
+            color: #cbd5e6;
+        }
+        body.dark .problem-link:hover {
+            background: #1e2a3a;
+            border-left-color: #f5b042;
+        }
+        body.dark .problem-link.active {
+            background: #1e2a3a;
+            color: #f5e0b0;
+            border-left-color: #f5b042;
+        }
+        body.dark .problem-content {
+            background: #0f172a;
+        }
+        body.dark .problem-title {
+            color: #f5cd94;
+            border-bottom-color: #f5b042;
+        }
+        body.dark .problem-description {
+            background: #1e293b;
+            border-left-color: #f5b042;
+            color: #e2edf7;
+        }
+        body.dark .translation-collapsible {
+            background: #1e2a3a;
+            border-color: #334155;
+        }
+        body.dark .collapsible-header {
+            background: #0f2b3b;
+            color: #f5cd94;
+            border-bottom-color: #334155;
+        }
+        body.dark .toggle-translate-btn {
+            color: #f5b042;
+        }
+        body.dark .collapsible-content {
+            background: #1a2538;
+            color: #e2e8f0;
+            border-top-color: #2d4055;
+        }
+        body.dark .answer-section {
+            background: #111c2c;
+        }
+        body.dark .answer-input {
+            background: #1e293b;
+            border-color: #475569;
+            color: #f1f5f9;
+        }
+        body.dark .check-btn {
+            background: #3b6e8f;
+        }
+        body.dark footer {
+            background: #0f172a;
+            color: #94a3b8;
+            border-top-color: #1e293b;
+        }
+        body.dark .mobile-menu-row {
+            background: #111827;
+            border-bottom-color: #1f2a3e;
+        }
+        body.dark .mobile-menu-btn {
+            background: #1e3a5f;
+        }
+        body.dark .result.correct {
+            background: #14532d;
+            color: #bbf7d0;
+        }
+        body.dark .result.wrong {
+            background: #7f1a1a;
+            color: #fecaca;
+        }
+        body.dark .unavailable-box {
+            background: #2d1f1f;
+            border-left-color: #f87171;
+            color: #fbc4c4;
+        }
+        body.dark .translate-btn {
+            background: #3b6e8f;
+        }
+
+        /* ripple spread overlay */
+        .theme-ripple {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            transform: scale(0);
+            opacity: 0.98;
+            pointer-events: none;
+            z-index: 9999;
+            will-change: transform;
+            transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.2), opacity 0.2s ease;
+        }
+
+        @media (max-width: 700px) {
+            body { padding: 12px; }
+            .mobile-menu-row { display: flex; }
+            .problems-sidebar {
+                display: block;
+                width: 100%;
+                max-height: 0;
+                opacity: 0;
+                overflow-y: hidden;
+                padding: 0;
+                border-right: none;
+                transition: max-height 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.2), opacity 0.25s ease, padding 0.2s;
+                visibility: hidden;
+                height: auto;
+            }
+            .problems-sidebar.mobile-open {
+                max-height: 70vh;
+                opacity: 1;
+                visibility: visible;
+                padding-bottom: 20px;
+                border-bottom: 1px solid #dce4ec;
+                overflow-y: auto;
+            }
+            .problem-content {
+                padding: 24px 20px;
+            }
+            .header {
+                padding: 15px 20px;
+            }
+            .theme-toggle {
+                width: 46px;
+                height: 46px;
+            }
+            .icon-switch-wrapper {
+                width: 28px;
+                height: 28px;
+            }
+            .theme-svg {
+                width: 28px;
+                height: 28px;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']], processEscapes: true },
+            options: { ignoreHtmlClass: 'tex2jax_ignore', processHtmlClass: 'tex2jax_process' }
+        };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="header-left">
+            <img src="project/logo.png" alt="Project Euler Logo" class="header-img" onerror="this.style.display='none'">
+            <div>
+                <h1>Project Euler · Simulator</h1>
+                <p>Select a problem | Check your answer | 🇮🇷 Translate description to Persian</p>
+            </div>
+        </div>
+        <!-- THEME BUTTON with animated moon/sun SVG (no emoji) -->
+        <button id="darkModeToggle" class="theme-toggle" aria-label="Dark/Light mode">
+            <div class="icon-switch-wrapper" id="iconWrapper">
+                <!-- Moon SVG (crescent) -->
+                <svg class="theme-svg moon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#f5b042" stroke-width="1.5" fill="#f5d76e" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <!-- Sun SVG (circle with rays) -->
+                <svg class="theme-svg sun-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="5" stroke="#f5b042" stroke-width="1.5" fill="#f5d76e"/>
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="#f5b042" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+        </button>
+    </div>
+
+    <div class="mobile-menu-row">
+        <button id="mobileMenuToggleBtn" class="mobile-menu-btn">☰ Problem List & Jump</button>
+        <span style="font-size:0.8rem; color:#2c5a7a;">▼ tap</span>
+    </div>
+
+    <div class="main-grid">
+        <div class="problems-sidebar" id="problemsSidebar">
+            <h3>📋 Problem Set</h3>
+            <div class="goto-panel">
+                <div class="goto-label">🔍 JUMP TO PROBLEM</div>
+                <div class="goto-controls">
+                    <input type="number" id="gotoProblemInput" class="goto-input" min="1" value="1" step="1">
+                    <button id="gotoProblemBtn" class="goto-btn">Go →</button>
+                </div>
+            </div>
+            <div id="problem-list-container"><div class="loader">Loading problems...</div></div>
+        </div>
+
+        <div class="problem-content" id="problem-area">
+            <div class="loader">Loading problem data...</div>
+        </div>
+    </div>
+    <footer>
+        ✅ Answers verified via MD5 hash | 📱 Mobile friendly | Persian translation
+    </footer>
+</div>
+
+<script>
+    // ======================== GLOBAL DATA =========================
+    let problemsHashes = [];
+    let problemsTexts = [];
+    let totalProblems = 0;
+    let currentProblemId = null;
+    const translationCache = new Map();
+
+    // DOM elements
+    const sidebarEl = document.getElementById('problemsSidebar');
+    const mobileToggleBtn = document.getElementById('mobileMenuToggleBtn');
+    const gotoInput = document.getElementById('gotoProblemInput');
+    const gotoBtn = document.getElementById('gotoProblemBtn');
+    const themeToggleBtn = document.getElementById('darkModeToggle');
+    const iconWrapper = document.getElementById('iconWrapper');
+
+    // ========== DARK MODE + RIPPLE SPREAD + ICON MORPH ANIMATION ==========
+    let isDarkMode = false;
+    let animationInProgress = false;
+
+    function loadThemePreference() {
+        const saved = localStorage.getItem('euler_theme');
+        if (saved === 'dark') {
+            isDarkMode = true;
+            document.body.classList.add('dark');
+        } else {
+            isDarkMode = false;
+            document.body.classList.remove('dark');
+        }
+    }
+
+    // add spin animation to the icon wrapper (morph effect)
+    function animateIcon() {
+        if (!iconWrapper) return;
+        iconWrapper.classList.remove('icon-animate');
+        // force reflow
+        void iconWrapper.offsetWidth;
+        iconWrapper.classList.add('icon-animate');
+        setTimeout(() => {
+            if (iconWrapper) iconWrapper.classList.remove('icon-animate');
+        }, 500);
+    }
+
+    // ripple spread + theme switch
+    function animateThemeTransition(goingDark) {
+        const btn = themeToggleBtn;
+        if (!btn) return;
+        const rect = btn.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const rippleColor = goingDark ? '#121826' : '#eef2f5';
+        const ripple = document.createElement('div');
+        ripple.className = 'theme-ripple';
+        ripple.style.position = 'fixed';
+        ripple.style.left = `${centerX}px`;
+        ripple.style.top = `${centerY}px`;
+        ripple.style.width = '20px';
+        ripple.style.height = '20px';
+        ripple.style.marginLeft = '-10px';
+        ripple.style.marginTop = '-10px';
+        ripple.style.background = rippleColor;
+        ripple.style.borderRadius = '50%';
+        ripple.style.transform = 'scale(0)';
+        ripple.style.opacity = '0.95';
+        document.body.appendChild(ripple);
+        
+        ripple.offsetHeight;
+        ripple.style.transition = 'transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.4s ease';
+        const maxDim = Math.max(window.innerWidth, window.innerHeight) * 2.5;
+        const scale = maxDim / 10;
+        ripple.style.transform = `scale(${scale})`;
+        ripple.style.opacity = '0.92';
+        
+        const onFinish = () => {
+            if (goingDark) {
+                document.body.classList.add('dark');
+                localStorage.setItem('euler_theme', 'dark');
+                isDarkMode = true;
+            } else {
+                document.body.classList.remove('dark');
+                localStorage.setItem('euler_theme', 'light');
+                isDarkMode = false;
+            }
+            ripple.removeEventListener('transitionend', onFinish);
+            ripple.style.opacity = '0';
+            setTimeout(() => { if (ripple.parentNode) ripple.remove(); }, 200);
+            animationInProgress = false;
+        };
+        ripple.addEventListener('transitionend', onFinish, { once: true });
+        setTimeout(() => {
+            if (ripple.parentNode && !animationInProgress) {
+                onFinish();
+            }
+        }, 700);
+    }
+
+    function toggleDarkModeWithEffects() {
+        if (animationInProgress) return;
+        animationInProgress = true;
+        // start icon morph animation
+        animateIcon();
+        // trigger ripple and theme change
+        const newDarkState = !isDarkMode;
+        animateThemeTransition(newDarkState);
+    }
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleDarkModeWithEffects();
+        });
+    }
+    loadThemePreference();
+
+    // ======================== MOBILE SIDEBAR ========================
+    function closeMobileSidebar() {
+        if (window.innerWidth <= 700 && sidebarEl) sidebarEl.classList.remove('mobile-open');
+    }
+    function toggleMobileSidebar() {
+        if (window.innerWidth <= 700 && sidebarEl) {
+            sidebarEl.classList.toggle('mobile-open');
+        }
+    }
+    function handleResize() {
+        if (window.innerWidth > 700 && sidebarEl) sidebarEl.classList.remove('mobile-open');
+    }
+    window.addEventListener('resize', handleResize);
+    if (mobileToggleBtn) mobileToggleBtn.addEventListener('click', toggleMobileSidebar);
+
+    // ======================== TRANSLATION API ========================
+    async function translateToPersian(text) {
+        if (!text || text.trim() === "") return "No text to translate.";
+        const cleanText = text.trim();
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=fa&dt=t&q=${encodeURIComponent(cleanText)}`;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (data && data[0] && data[0][0] && data[0][0][0]) {
+                let translated = "";
+                for (const segment of data[0]) {
+                    translated += segment[0];
+                }
+                return translated;
+            } else {
+                throw new Error("Invalid translation response");
+            }
+        } catch (err) {
+            console.error("Translation error:", err);
+            return `❗ Translation failed: ${err.message}. Please try again.`;
+        }
+    }
+
+    // ======================== RENDER PROBLEM (keep existing logic) ========================
+    async function showProblem(problemId) {
+        if (currentProblemId === problemId) return;
+        if (problemId < 1 || problemId > totalProblems) return;
+        currentProblemId = problemId;
+
+        if (window.location.hash !== `#${problemId}`) {
+            window.location.hash = `#${problemId}`;
+        }
+        if (gotoInput) gotoInput.value = problemId;
+
+        const descriptionHtml = problemsTexts[problemId - 1] || '<p>Description not available.</p>';
+        const answerHash = problemsHashes[problemId - 1];
+        const isAnswerLocked = (answerHash === "Answer not yet available");
+
+        const translationWidgetHtml = `
+            <div class="translation-widget">
+                <button id="translateProblemBtn" class="translate-btn">📄 Translate to Persian 🇮🇷</button>
+                <div id="translationSpinnerContainer" style="display: none;"><div class="spinner"></div></div>
+            </div>
+            <div id="translationCollapsible" class="translation-collapsible">
+                <div class="collapsible-header" id="collapsibleHeader">
+                    <span>📖 Persian Translation (فارسی)</span>
+                    <button id="toggleTranslationBtn" class="toggle-translate-btn">▼ Expand</button>
+                </div>
+                <div class="collapsible-content" id="translatedContentBox">
+                    <p style="color: #6c757d;">Translation will appear here after clicking the button...</p>
+                </div>
+            </div>
+        `;
+
+        let answerSectionHtml = '';
+        if (isAnswerLocked) {
+            answerSectionHtml = `<div class="unavailable-box">🔒 Answer not yet available for this problem.</div>`;
+        } else {
+            answerSectionHtml = `
+                <div class="answer-section">
+                    <label class="answer-label">📝 Enter your answer:</label>
+                    <input type="text" id="answerInput" class="answer-input" placeholder="e.g., 233168" autocomplete="off">
+                    <br><button id="checkAnswerBtn" class="check-btn">✓ Check answer</button>
+                    <div id="resultMessage" class="result"></div>
+                </div>
+            `;
+        }
+
+        const problemDiv = document.getElementById('problem-area');
+        problemDiv.innerHTML = `
+            <div>
+                <h2 class="problem-title">Problem ${problemId}</h2>
+                <div class="problem-description" id="problem-description">${descriptionHtml}</div>
+                ${translationWidgetHtml}
+                ${answerSectionHtml}
+            </div>
+        `;
+
+        if (window.MathJax) {
+            try { await MathJax.typesetPromise(); } catch(e) { console.warn(e); }
+        }
+
+        const translateBtn = document.getElementById('translateProblemBtn');
+        const spinnerContainer = document.getElementById('translationSpinnerContainer');
+        const collapsibleBox = document.getElementById('translationCollapsible');
+        const translatedContentDiv = document.getElementById('translatedContentBox');
+        const toggleBtn = document.getElementById('toggleTranslationBtn');
+        const collapsibleHeader = document.getElementById('collapsibleHeader');
+        const contentElem = document.querySelector('#translationCollapsible .collapsible-content');
+        
+        if (collapsibleBox) collapsibleBox.classList.remove('open');
+        if (contentElem) contentElem.classList.remove('collapsed');
+        
+        let isContentExpanded = true;
+        const toggleInnerText = () => {
+            if (!contentElem) return;
+            const isCollapsed = contentElem.classList.contains('collapsed');
+            if (isCollapsed) {
+                contentElem.classList.remove('collapsed');
+                if (toggleBtn) toggleBtn.innerHTML = '▲ Collapse';
+                isContentExpanded = true;
+            } else {
+                contentElem.classList.add('collapsed');
+                if (toggleBtn) toggleBtn.innerHTML = '▼ Expand';
+                isContentExpanded = false;
+            }
+        };
+        if (toggleBtn) {
+            toggleBtn.onclick = (e) => {
+                e.stopPropagation();
+                toggleInnerText();
+            };
+        }
+        if (collapsibleHeader) {
+            collapsibleHeader.style.cursor = 'pointer';
+            collapsibleHeader.onclick = (e) => {
+                if (e.target !== toggleBtn) toggleInnerText();
+            };
+        }
+        
+        let isTranslating = false;
+        const performTranslation = async () => {
+            if (isTranslating) return;
+            if (translationCache.has(problemId)) {
+                const cachedText = translationCache.get(problemId);
+                if (translatedContentDiv) translatedContentDiv.innerHTML = `<p>${cachedText}</p>`;
+                if (collapsibleBox && !collapsibleBox.classList.contains('open')) {
+                    collapsibleBox.classList.add('open');
+                    if (contentElem && contentElem.classList.contains('collapsed')) {
+                        contentElem.classList.remove('collapsed');
+                        if (toggleBtn) toggleBtn.innerHTML = '▲ Collapse';
+                    }
+                }
+                return;
+            }
+            const descElement = document.getElementById('problem-description');
+            if (!descElement) return;
+            let originalText = descElement.textContent || descElement.innerText;
+            if (!originalText.trim()) {
+                translatedContentDiv.innerHTML = `<div class="error-translation">Error: Problem description is empty.</div>`;
+                if (collapsibleBox) collapsibleBox.classList.add('open');
+                return;
+            }
+            if (translateBtn) translateBtn.disabled = true;
+            if (spinnerContainer) spinnerContainer.style.display = 'inline-block';
+            isTranslating = true;
+            try {
+                const translated = await translateToPersian(originalText);
+                translationCache.set(problemId, translated);
+                translatedContentDiv.innerHTML = `<p>${translated}</p>`;
+                if (collapsibleBox) {
+                    collapsibleBox.classList.add('open');
+                    if (contentElem && contentElem.classList.contains('collapsed')) {
+                        contentElem.classList.remove('collapsed');
+                        if (toggleBtn) toggleBtn.innerHTML = '▲ Collapse';
+                    }
+                }
+            } catch (err) {
+                translatedContentDiv.innerHTML = `<div class="error-translation">❌ Translation error: ${err.message || 'Unknown error'}</div>`;
+                if (collapsibleBox) collapsibleBox.classList.add('open');
+            } finally {
+                if (translateBtn) translateBtn.disabled = false;
+                if (spinnerContainer) spinnerContainer.style.display = 'none';
+                isTranslating = false;
+            }
+        };
+        if (translateBtn) translateBtn.onclick = performTranslation;
+        
+        if (!isAnswerLocked) {
+            const checkBtn = document.getElementById('checkAnswerBtn');
+            const answerInputElem = document.getElementById('answerInput');
+            const resultDiv = document.getElementById('resultMessage');
+            if (checkBtn && answerInputElem) {
+                const checkHandler = () => {
+                    const userAnswer = answerInputElem.value.trim();
+                    if (userAnswer === "") {
+                        resultDiv.innerHTML = '⚠️ Please enter an answer.';
+                        resultDiv.className = 'result wrong';
+                        return;
+                    }
+                    const userHash = md5Hash(userAnswer);
+                    const correctHash = problemsHashes[currentProblemId - 1];
+                    if (userHash === correctHash) {
+                        resultDiv.innerHTML = '✓ Correct! Your answer matches the recorded solution.';
+                        resultDiv.className = 'result correct';
+                    } else {
+                        resultDiv.innerHTML = '✗ Incorrect. Try again.';
+                        resultDiv.className = 'result wrong';
+                    }
+                };
+                checkBtn.onclick = checkHandler;
+                answerInputElem.onkeypress = (e) => { if (e.key === 'Enter') checkHandler(); };
+            }
+        }
+        setActiveSidebarItem(problemId);
+    }
+
+    function setActiveSidebarItem(problemId) {
+        document.querySelectorAll('.problem-link').forEach(link => {
+            const id = parseInt(link.dataset.id);
+            if (id === problemId) link.classList.add('active');
+            else link.classList.remove('active');
+        });
+    }
+
+    function buildProblemList() {
+        const container = document.getElementById('problem-list-container');
+        const ul = document.createElement('ul');
+        ul.className = 'problem-list';
+        for (let i = 1; i <= totalProblems; i++) {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.className = 'problem-link';
+            a.textContent = `Problem ${i}`;
+            a.dataset.id = i;
+            a.onclick = (e) => {
+                e.preventDefault();
+                showProblem(i);
+                closeMobileSidebar();
+            };
+            li.appendChild(a);
+            ul.appendChild(li);
+        }
+        container.innerHTML = '';
+        container.appendChild(ul);
+    }
+
+    function setupGoToProblem() {
+        if (!gotoBtn || !gotoInput) return;
+        const updateMax = () => {
+            if (totalProblems > 0) {
+                gotoInput.max = totalProblems;
+                gotoInput.min = 1;
+                let val = parseInt(gotoInput.value);
+                if (isNaN(val)) gotoInput.value = 1;
+                else if (val > totalProblems) gotoInput.value = totalProblems;
+                else if (val < 1) gotoInput.value = 1;
+            }
+        };
+        const performJump = () => {
+            if (totalProblems === 0) {
+                alert("Problem data not loaded yet.");
+                return;
+            }
+            let target = parseInt(gotoInput.value, 10);
+            if (isNaN(target) || target < 1 || target > totalProblems) {
+                alert(`Problem number must be between 1 and ${totalProblems}.`);
+                return;
+            }
+            showProblem(target);
+            closeMobileSidebar();
+        };
+        gotoBtn.onclick = performJump;
+        gotoInput.onkeypress = (e) => { if (e.key === 'Enter') performJump(); };
+        updateMax();
+        window.updateGoToMax = updateMax;
+    }
+
+    function onHashChange() {
+        if (totalProblems === 0) return;
+        const hash = window.location.hash;
+        if (hash && hash.startsWith('#')) {
+            const num = parseInt(hash.substring(1), 10);
+            if (!isNaN(num) && num >= 1 && num <= totalProblems) showProblem(num);
+            else if (hash === '#' && currentProblemId !== 1) showProblem(1);
+        } else if (totalProblems > 0 && currentProblemId !== 1) showProblem(1);
+    }
+
+    async function loadJSON(url) {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Failed to load ${url} (status ${response.status})`);
+        return await response.json();
+    }
+
+    async function loadAllData() {
+        try {
+            const [hashes, texts] = await Promise.all([
+                loadJSON('answers_hash.json'),
+                loadJSON('problem_texts.json')
+            ]);
+            problemsHashes = hashes;
+            problemsTexts = texts;
+            if (!Array.isArray(problemsHashes) || !Array.isArray(problemsTexts)) throw new Error('Invalid JSON');
+            totalProblems = Math.min(problemsHashes.length, problemsTexts.length);
+            if (totalProblems === 0) throw new Error('No problems.');
+            buildProblemList();
+            setupGoToProblem();
+            if (window.updateGoToMax) window.updateGoToMax();
+            window.addEventListener('hashchange', onHashChange);
+            let initialId = 1;
+            const hash = window.location.hash;
+            if (hash && hash.startsWith('#')) {
+                const parsed = parseInt(hash.substring(1), 10);
+                if (!isNaN(parsed) && parsed >= 1 && parsed <= totalProblems) initialId = parsed;
+            }
+            await showProblem(initialId);
+            if (!window.location.hash || window.location.hash === '#') window.location.hash = `#${initialId}`;
+            document.querySelectorAll('.problem-link').forEach(link => {
+                link.addEventListener('click', () => setTimeout(closeMobileSidebar, 100));
+            });
+        } catch (error) {
+            console.error(error);
+            document.getElementById('problem-list-container').innerHTML = `<div style="color:#c0392b; padding:15px;">❌ Error loading files: ${error.message}</div>`;
+            document.getElementById('problem-area').innerHTML = '<div class="error-msg">Unable to load problems.</div>';
+        }
+    }
+    loadAllData();
+</script>
+</body>
+</html>
